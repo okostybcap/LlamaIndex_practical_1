@@ -6,7 +6,7 @@ from llama_index.core import (
     SummaryIndex,
     Settings,
     Document,
-    StorageContext
+    StorageContext,
 )
 from llama_index.core.vector_stores import (
     MetadataFilter,
@@ -42,17 +42,11 @@ Settings.llm = OpenAILike(
 # --------------------------------------------------
 chroma_client = chromadb.PersistentClient("./chroma_db")
 
-chroma_collection = chroma_client.get_or_create_collection(
-    name="candidates"
-)
+chroma_collection = chroma_client.get_or_create_collection(name="candidates")
 
-vector_store = ChromaVectorStore(
-    chroma_collection=chroma_collection
-)
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
 
-storage_context = StorageContext.from_defaults(
-    vector_store=vector_store
-)
+storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
 print(chroma_collection.count())
 # create index
@@ -81,12 +75,12 @@ for idx, filename in enumerate(sorted(os.listdir(data_dir))):
 
     doc = Document(
         text=text,
-         metadata={
+        metadata={
             "candidate_id": idx,
             "candidate_name": name,
             "file_name": filename,
-            "type": "resume"
-        }
+            "type": "resume",
+        },
     )
 
     vector_index.insert(doc)
@@ -151,10 +145,7 @@ filters = MetadataFilters(
     ]
 )
 
-summary_qe = vector_index.as_query_engine(
-    similarity_top_k=1,
-    filters=filters
-)
+summary_qe = vector_index.as_query_engine(similarity_top_k=1, filters=filters)
 
 summary_response = summary_qe.query(summary_prompt)
 
