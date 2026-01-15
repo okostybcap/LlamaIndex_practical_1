@@ -1,5 +1,6 @@
 from llama_index.core.agent import ReActAgent
 from llama_index.core.tools import QueryEngineTool, ToolMetadata, FunctionTool
+from llama_index.tools.python_file import PythonFileToolSpec
 from llama_index.core import Settings
 from db_utils import get_vector_index
 from dotenv import load_dotenv
@@ -60,9 +61,13 @@ async def main():
         description="Useful for answering general questions tailored to general knowledge not related to specific candidates."
     )
 
-    # Initialize ReAct Agent
+    # Initialize PythonFileToolSpec
+    python_file_tool = PythonFileToolSpec(file_name="math_utils.py")
+    python_file_tools = python_file_tool.to_tool_list()
+
+    # Initialize ReAct Agent python_file_tools
     agent = ReActAgent(
-        tools=[query_engine_tool, general_knowledge_tool],
+        tools=[query_engine_tool, general_knowledge_tool] + python_file_tools,
         verbose=True,
     )
 
