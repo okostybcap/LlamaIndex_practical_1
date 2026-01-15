@@ -1,5 +1,7 @@
 from llama_index.core.agent import ReActAgent
-from llama_index.core.tools import QueryEngineTool, ToolMetadata
+from llama_index.core.tools import QueryEngineTool, ToolMetadata, FunctionTool
+from llama_index.tools.python_file import PythonFileToolSpec
+from llama_index.core import Settings
 from db_utils import get_vector_index
 from dotenv import load_dotenv
 import asyncio
@@ -45,9 +47,27 @@ async def main():
         ),
     )
 
-    # Initialize ReAct Agent
+    # Define the General Knowledge Tool
+    def general_knowledge(query: str) -> str:
+        """
+        Answer general knowledge questions unrelated to the candidates' resumes.
+        """
+        response = Settings.llm.complete(query)
+        return str(response)
+
+    general_knowledge_tool = FunctionTool.from_defaults(
+        fn=general_knowledge,
+        name="general_knowledge",
+        description="Useful for answering general questions tailored to general knowledge not related to specific candidates."
+    )
+
+    # Initialize PythonFileToolSpec
+    python_file_tool = PythonFileToolSpec(file_name="math_utils.py")
+    python_file_tools = python_file_tool.to_tool_list()
+
+    # Initialize ReAct Agent python_file_tools
     agent = ReActAgent(
-        tools=[query_engine_tool],
+        tools=[query_engine_tool, general_knowledge_tool] + python_file_tools,
         verbose=True,
     )
 
